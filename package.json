@@ -1,0 +1,19 @@
+{
+  "name": "twitch-audit-pro-server",
+  "version": "0.1.0",
+  "description": "Local dev server that talks to the Twitch Helix API server-side. Credentials live only in your .env file, never in code.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "dotenv": "^16.4.5",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
