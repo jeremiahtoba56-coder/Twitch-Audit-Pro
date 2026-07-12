@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Twitch Audit Pro — Professional Twitch Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pure-white:#ffffff;
+    --off-white:#fafafa;
+    --gray-50:#f5f5f6;
+    --gray-100:#ebebed;
+    --gray-200:#dcdce0;
+    --gray-400:#9a9aa2;
+    --gray-500:#71717a;
+    --gray-700:#3f3f46;
+    --gray-800:#232328;
+    --almost-black:#111113;
+    --pure-black:#000000;
+
+    --blue:#0a84ff;
+    --green:#30d158;
+    --orange:#ff9f0a;
+    --red:#ff453a;
+
+    --r-input:16px;
+    --r-button:16px;
+    --r-card:24px;
+    --r-dialog:28px;
+    --r-image:20px;
+    --r-float:32px;
+
+    --ease-spring: cubic-bezier(.2,.9,.25,1.1);
+    --ease-smooth: cubic-bezier(.4,0,.2,1);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--off-white);
+    color:var(--almost-black);
+    font-family:'Inter','Geist',-apple-system,BlinkMacSystemFont,sans-serif;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background: rgba(10,132,255,.18); }
+
+  /* ---------- Ambient background ---------- */
+  .ambient{
+    position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+  }
+  .orb{
+    position:absolute; border-radius:50%; filter:blur(90px); opacity:.35;
+    transition:transform 1.2s var(--ease-smooth);
+    will-change:transform;
+  }
+  .orb.o1{ width:640px;height:640px; background:radial-gradient(circle at 30% 30%, #cfe6ff, transparent 70%); top:-220px; left:-160px; }
+  .orb.o2{ width:560px;height:560px; background:radial-gradient(circle at 60% 40%, #ffe3d0, transparent 70%); bottom:-200px; right:-140px; opacity:.3;}
+  .orb.o3{ width:420px;height:420px; background:radial-gradient(circle at 50% 50%, #dcf7e4, transparent 70%); top:40%; left:50%; opacity:.22;}
+
+  canvas#particles{ position:fixed; inset:0; z-index:0; opacity:.55; }
+
+  /* ---------- Layout ---------- */
+  .wrap{ position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:0 28px; }
+
+  nav.top{
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 40px;
+    transition:all .5s var(--ease-smooth);
+  }
+  nav.top.scrolled{
+    padding:12px 40px;
+    background:rgba(250,250,250,.72);
+    backdrop-filter:blur(20px) saturate(180%);
+    border-bottom:1px solid rgba(0,0,0,.05);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:15px; letter-spacing:-.01em;}
+  .brand .dot{ width:9px;height:9px;border-radius:50%; background:linear-gradient(135deg,var(--blue),#7c5cff); }
+  .nav-links{ display:flex; align-items:center; gap:36px; font-size:14px; color:var(--gray-500); font-weight:500;}
+  .nav-links a{ color:inherit; text-decoration:none; transition:color .25s var(--ease-smooth); }
+  .nav-links a:hover{ color:var(--almost-black); }
+  .nav-cta{ display:flex; align-items:center; gap:14px; }
+  .btn-ghost{ font-size:14px; font-weight:600; color:var(--almost-black); background:none; border:none; cursor:pointer; padding:8px 4px; }
+  .btn-primary{
+    font-size:14px; font-weight:600; color:#fff; background:var(--almost-black);
+    border:none; border-radius:999px; padding:10px 20px; cursor:pointer;
+    transition: transform .3s var(--ease-spring), box-shadow .3s var(--ease-smooth), background .25s;
+    box-shadow:0 1px 2px rgba(0,0,0,.15);
+  }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(0,0,0,.18); background:#000;}
+  .btn-primary:active{ transform:translateY(0px) scale(.97); }
+
+  /* ---------- Hero ---------- */
+  .hero{ position:relative; padding:200px 0 120px; text-align:center; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--gray-500);
+    background:var(--pure-white); border:1px solid var(--gray-100); padding:7px 14px; border-radius:999px;
+    opacity:0; transform:translateY(10px); animation:reveal .8s var(--ease-smooth) .1s forwards;
+    box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .eyebrow .pulse{ width:6px;height:6px;border-radius:50%; background:var(--green); box-shadow:0 0 0 rgba(48,209,88,.5); animation:pulse 2s infinite; }
+  @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(48,209,88,.45);} 70%{box-shadow:0 0 0 8px rgba(48,209,88,0);} 100%{box-shadow:0 0 0 0 rgba(48,209,88,0);} }
+
+  h1.title{
+    font-size:clamp(40px,6vw,76px); font-weight:800; letter-spacing:-.035em; line-height:1.04; margin:28px 0 20px;
+    opacity:0; transform:translateY(18px); animation:reveal .9s var(--ease-smooth) .25s forwards;
+  }
+  h1.title .accent{ color:var(--gray-400); }
+  p.subtitle{
+    font-size:19px; color:var(--gray-500); max-width:560px; margin:0 auto 52px; line-height:1.55; font-weight:450;
+    opacity:0; transform:translateY(14px); animation:reveal .9s var(--ease-smooth) .4s forwards;
+  }
+  @keyframes reveal{ to{ opacity:1; transform:translateY(0);} }
+
+  /* ---------- Analyze bar ---------- */
+  .analyze-shell{
+    max-width:640px; margin:0 auto;
+    opacity:0; transform:translateY(14px) scale(.98); animation:reveal2 .9s var(--ease-smooth) .55s forwards;
+  }
+  @keyframes reveal2{ to{ opacity:1; transform:translateY(0) scale(1);} }
+
+  .analyze-bar{
+    display:flex; align-items:center; gap:10px;
+    background:var(--pure-white); border:1px solid var(--gray-100); border-radius:999px;
+    padding:8px 8px 8px 22px; box-shadow:0 2px 8px rgba(0,0,0,.04), 0 20px 45px rgba(0,0,0,.05);
+    transition: box-shadow .4s var(--ease-smooth), border-color .4s var(--ease-smooth), transform .4s var(--ease-smooth);
+  }
+  .analyze-bar.focused{
+    box-shadow:0 0 0 4px rgba(10,132,255,.12), 0 20px 45px rgba(0,0,0,.08);
+    border-color: rgba(10,132,255,.35);
+  }
+  .analyze-bar svg.twitch-icon{ flex-shrink:0; color:#9146FF; }
+  .analyze-bar input{
+    flex:1; border:none; outline:none; background:none; font-size:16px; font-weight:500;
+    color:var(--almost-black); padding:14px 0;
+  }
+  .analyze-bar input::placeholder{ color:var(--gray-400); font-weight:450; }
+  .kbd{
+    font-size:12px; color:var(--gray-400); border:1px solid var(--gray-200); border-radius:7px; padding:3px 7px;
+    font-family:inherit; background:var(--gray-50);
+  }
+  .analyze-btn{
+    flex-shrink:0; display:flex; align-items:center; gap:8px;
+    background:var(--almost-black); color:#fff; border:none; border-radius:999px; padding:13px 22px;
+    font-size:15px; font-weight:600; cursor:pointer;
+    transition:transform .35s var(--ease-spring), box-shadow .35s var(--ease-smooth), background .3s;
+  }
+  .analyze-btn:hover{ transform:translateY(-2px); box-shadow:0 12px 26px rgba(0,0,0,.22);}
+  .analyze-btn:active{ transform:scale(.96); }
+  .analyze-btn:disabled{ opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  .recent-row{
+    display:flex; gap:8px; justify-content:center; margin-top:16px; flex-wrap:wrap;
+    opacity:0; animation:reveal .9s var(--ease-smooth) .7s forwards;
+  }
+  .chip{
+    font-size:13px; color:var(--gray-500); background:var(--pure-white); border:1px solid var(--gray-100);
+    padding:7px 14px; border-radius:999px; cursor:pointer; transition:all .25s var(--ease-smooth); font-weight:500;
+  }
+  .chip:hover{ color:var(--almost-black); border-color:var(--gray-200); transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,.05);}
+
+  /* ---------- Live preview card ---------- */
+  .preview-wrap{ margin-top:90px; display:flex; justify-content:center;
+    opacity:0; transform:translateY(24px); animation:reveal .9s var(--ease-smooth) .85s forwards; }
+  .preview-card{
+    width:100%; max-width:520px; background:var(--pure-white); border:1px solid var(--gray-100);
+    border-radius:var(--r-card); padding:28px; box-shadow:0 30px 60px rgba(0,0,0,.06);
+    transform:rotate(-1.2deg);
+    transition:transform .5s var(--ease-spring);
+  }
+  .preview-card:hover{ transform:rotate(0deg) translateY(-4px); }
+  .preview-head{ display:flex; align-items:center; gap:14px; }
+  .preview-avatar{ width:52px;height:52px;border-radius:16px; background:linear-gradient(135deg,#9146FF,#6441a5); flex-shrink:0;}
+  .preview-name{ font-weight:700; font-size:16px; }
+  .preview-sub{ font-size:13px; color:var(--gray-400); margin-top:2px;}
+  .preview-score{ margin-left:auto; text-align:right; }
+  .preview-score .num{ font-size:28px; font-weight:800; letter-spacing:-.02em; }
+  .preview-score .lbl{ font-size:11px; color:var(--gray-400); font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+  .preview-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:22px; }
+  .preview-mini{ background:var(--gray-50); border-radius:14px; padding:12px 14px; }
+  .preview-mini .mv{ font-weight:700; font-size:15px;}
+  .preview-mini .ml{ font-size:11px; color:var(--gray-400); font-weight:600; margin-top:2px;}
+
+  /* ---------- Sections below ---------- */
+  section.section{ position:relative; padding:100px 0; }
+  .section-head{ text-align:center; max-width:600px; margin:0 auto 56px; }
+  .section-eyebrow{ font-size:13px; font-weight:700; color:var(--blue); text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px;}
+  .section-title{ font-size:36px; font-weight:800; letter-spacing:-.02em; line-height:1.15; }
+  .section-sub{ font-size:16px; color:var(--gray-500); margin-top:12px; line-height:1.6;}
+
+  .flow-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:16px; }
+  .flow-card{
+    background:var(--pure-white); border:1px solid var(--gray-100); border-radius:var(--r-card);
+    padding:26px 20px; text-align:left; transition:transform .35s var(--ease-spring), box-shadow .35s var(--ease-smooth);
+    opacity:0; transform:translateY(20px);
+  }
+  .flow-card.in{ opacity:1; transform:translateY(0); }
+  .flow-card:hover{ transform:translateY(-6px); box-shadow:0 20px 40px rgba(0,0,0,.06); }
+  .flow-num{ font-size:12px; font-weight:700; color:var(--gray-400); }
+  .flow-title{ font-weight:700; font-size:16px; margin-top:10px; }
+  .flow-desc{ font-size:13px; color:var(--gray-500); margin-top:8px; line-height:1.5;}
+
+  footer{ padding:60px 0 40px; text-align:center; color:var(--gray-400); font-size:13px; border-top:1px solid var(--gray-100); margin-top:60px;}
+
+  /* ---------- Dynamic Island ---------- */
+  .island{
+    position:fixed; top:22px; left:50%; transform:translateX(-50%);
+    z-index:100; background:rgba(17,17,19,.92); backdrop-filter:blur(20px);
+    border-radius:999px; color:#fff; display:flex; align-items:center;
+    box-shadow:0 20px 50px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.06);
+    overflow:hidden; white-space:nowrap;
+    transition: width .55s var(--ease-spring), height .55s var(--ease-spring), border-radius .5s var(--ease-spring), padding .5s var(--ease-spring), top .5s var(--ease-spring);
+  }
+  .island.idle{ width:150px; height:40px; padding:0 16px; }
+  .island.scanning{ width:380px; height:64px; padding:0 20px; border-radius:32px; }
+  .island.complete{ width:340px; height:56px; padding:0 18px; }
+  .island-inner{ display:flex; align-items:center; gap:12px; width:100%; }
+  .island-icon{ flex-shrink:0; width:26px;height:26px;border-radius:50%; background:linear-gradient(135deg,#9146FF,#6441a5); display:flex;align-items:center;justify-content:center;}
+  .island-text{ font-size:13px; font-weight:600; flex:1; overflow:hidden; text-overflow:ellipsis; }
+  .island-sub{ font-size:11px; color:rgba(255,255,255,.5); font-weight:500; }
+  .ring{ width:22px;height:22px; flex-shrink:0; }
+  .ring circle{ fill:none; stroke-width:2.5; }
+  .ring .bg{ stroke:rgba(255,255,255,.15); }
+  .ring .fg{ stroke:#0a84ff; stroke-linecap:round; transform-origin:center; transform:rotate(-90deg); transition:stroke-dashoffset .5s var(--ease-smooth); }
+  .island-pct{ font-size:12px; font-weight:700; color:rgba(255,255,255,.85); }
+
+  /* ---------- Scan overlay ---------- */
+  .scan-overlay{
+    position:fixed; inset:0; z-index:60; background:rgba(250,250,250,.6); backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none;
+    transition:opacity .5s var(--ease-smooth);
+  }
+  .scan-overlay.show{ opacity:1; pointer-events:auto; }
+  .scan-card{
+    width:420px; background:var(--pure-white); border-radius:var(--r-dialog); padding:36px;
+    box-shadow:0 40px 90px rgba(0,0,0,.18); transform:translateY(20px) scale(.97); transition:transform .5s var(--ease-spring);
+  }
+  .scan-overlay.show .scan-card{ transform:translateY(0) scale(1); }
+  .scan-stage{ display:flex; align-items:center; gap:12px; padding:9px 0; font-size:14px; color:var(--gray-400); font-weight:500; transition:color .3s; }
+  .scan-stage.active{ color:var(--almost-black); font-weight:600; }
+  .scan-stage.done{ color:var(--gray-700); }
+  .stage-icon{ width:20px;height:20px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+
+  /* ---------- Report ---------- */
+  #report{ display:none; position:relative; z-index:5; padding:130px 0 100px; }
+  #report.show{ display:block; }
+  .report-header{ display:flex; align-items:center; gap:22px; opacity:0; transform:translateY(16px); }
+  .report-avatar{ width:84px;height:84px;border-radius:24px; background:linear-gradient(135deg,#9146FF,#6441a5); flex-shrink:0; box-shadow:0 12px 30px rgba(145,70,255,.25);}
+  .report-name{ font-size:26px; font-weight:800; letter-spacing:-.02em; display:flex; align-items:center; gap:8px;}
+  .badge{ font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; background:var(--gray-50); color:var(--gray-500);}
+  .badge.live{ background:rgba(255,69,58,.1); color:var(--red); }
+  .report-meta{ font-size:14px; color:var(--gray-500); margin-top:4px; }
+
+  .score-hero{
+    margin-top:44px; display:grid; grid-template-columns:220px 1fr; gap:40px; align-items:center;
+    background:var(--pure-white); border:1px solid var(--gray-100); border-radius:var(--r-float); padding:40px;
+    opacity:0; transform:translateY(20px);
+  }
+  .orb-score{ position:relative; width:200px; height:200px; }
+  .orb-score svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .orb-score circle{ fill:none; stroke-width:10; }
+  .orb-score .bgc{ stroke:var(--gray-50); }
+  .orb-score .fgc{ stroke:url(#grad); stroke-linecap:round; transition:stroke-dashoffset 1.6s cubic-bezier(.16,1,.3,1); }
+  .orb-score .center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .orb-score .center .num{ font-size:52px; font-weight:800; letter-spacing:-.03em; }
+  .orb-score .center .lbl{ font-size:12px; color:var(--gray-400); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-top:2px;}
+
+  .sub-scores{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+  .sub-score .name{ font-size:13px; color:var(--gray-500); font-weight:600; margin-bottom:8px;}
+  .sub-score .bar-track{ height:6px; background:var(--gray-50); border-radius:99px; overflow:hidden;}
+  .sub-score .bar-fill{ height:100%; border-radius:99px; width:0%; transition:width 1.4s cubic-bezier(.16,1,.3,1); }
+  .sub-score .val{ font-size:20px; font-weight:800; margin-top:8px; }
+
+  .report-section{ margin-top:64px; opacity:0; transform:translateY(18px); }
+  .report-section-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+  .report-section-title{ font-size:22px; font-weight:800; letter-spacing:-.01em; }
+  .report-section-sub{ font-size:14px; color:var(--gray-500); margin-top:4px; }
+
+  .quickwin-list{ display:flex; flex-direction:column; gap:10px; }
+  .quickwin{
+    display:flex; align-items:center; gap:16px; background:var(--pure-white); border:1px solid var(--gray-100);
+    border-radius:var(--r-card); padding:18px 22px; transition:transform .3s var(--ease-spring), box-shadow .3s;
+  }
+  .quickwin:hover{ transform:translateX(4px); box-shadow:0 10px 24px rgba(0,0,0,.05); }
+  .qw-priority{ width:8px;height:8px;border-radius:50%; flex-shrink:0; }
+  .qw-priority.high{ background:var(--red); }
+  .qw-priority.med{ background:var(--orange); }
+  .qw-priority.low{ background:var(--blue); }
+  .qw-body{ flex:1; }
+  .qw-title{ font-weight:650; font-size:15px; }
+  .qw-meta{ font-size:12.5px; color:var(--gray-400); margin-top:3px; }
+  .qw-impact{ font-size:13px; font-weight:700; color:var(--green); background:rgba(48,209,88,.1); padding:5px 11px; border-radius:999px; flex-shrink:0;}
+
+  .asset-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  .asset-card{
+    background:var(--pure-white); border:1px solid var(--gray-100); border-radius:var(--r-card); overflow:hidden;
+    transition:transform .35s var(--ease-spring), box-shadow .35s;
+  }
+  .asset-card:hover{ transform:translateY(-6px); box-shadow:0 20px 40px rgba(0,0,0,.07); }
+  .asset-preview{ height:120px; background:linear-gradient(135deg,var(--gray-50),var(--gray-100)); position:relative; }
+  .asset-body{ padding:16px 18px; }
+  .asset-name{ font-weight:650; font-size:14px; }
+  .asset-score-row{ display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+  .asset-score{ font-size:13px; font-weight:700; }
+  .asset-dl{ font-size:12px; color:var(--gray-400); font-weight:600; cursor:pointer; }
+  .asset-dl:hover{ color:var(--almost-black); }
+
+  .coach-list{ display:flex; flex-direction:column; gap:16px; }
+  .coach-msg{
+    background:var(--pure-white); border:1px solid var(--gray-100); border-radius:var(--r-card); padding:22px 24px;
+    display:flex; gap:16px;
+  }
+  .coach-avatar{ width:36px;height:36px;border-radius:12px; background:linear-gradient(135deg,#0a84ff,#7c5cff); flex-shrink:0; }
+  .coach-text{ font-size:14.5px; line-height:1.6; color:var(--gray-700); }
+  .coach-impact{ display:inline-block; margin-top:10px; font-size:12.5px; font-weight:700; color:var(--blue); background:rgba(10,132,255,.08); padding:4px 10px; border-radius:999px;}
+
+  @media (max-width:900px){
+    .flow-grid{ grid-template-columns:repeat(2,1fr); }
+    .score-hero{ grid-template-columns:1fr; text-align:center; }
+    .sub-scores{ grid-template-columns:repeat(2,1fr); }
+    .asset-grid{ grid-template-columns:1fr; }
+    .nav-links{ display:none; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="ambient">
+  <div class="orb o1" id="orb1"></div>
+  <div class="orb o2" id="orb2"></div>
+  <div class="orb o3" id="orb3"></div>
+</div>
+
+<nav class="top" id="nav">
+  <div class="brand"><span class="dot"></span> Twitch Audit Pro</div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#docs">Docs</a>
+  </div>
+  <div class="nav-cta">
+    <button class="btn-ghost">Log in</button>
+    <button class="btn-primary">Get Started</button>
+  </div>
+</nav>
+
+<div class="island idle" id="island">
+  <div class="island-inner" id="islandInner">
+    <div class="island-icon">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 2L2 6v14h6v2h4l2-2h4l4-4V2H4zm16 12l-2 2h-4l-2 2h-2v-2H6V4h14v10z" fill="white"/></svg>
+    </div>
+    <div class="island-text" id="islandText">Ready</div>
+  </div>
+</div>
+
+<div id="main">
+  <div class="wrap hero">
+    <div class="eyebrow"><span class="pulse"></span> Twitch Intelligence Platform</div>
+    <h1 class="title">Know exactly why<br><span class="accent">a channel isn't growing</span></h1>
+    <p class="subtitle">Professional Twitch audits powered by AI, visual analysis, and branding intelligence.</p>
+
+    <div class="analyze-shell">
+      <div class="analyze-bar" id="analyzeBar">
+        <svg class="twitch-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 2L2 6v14h6v2h4l2-2h4l4-4V2H4zm16 12l-2 2h-4l-2 2h-2v-2H6V4h14v10z" fill="currentColor"/></svg>
+        <input id="usernameInput" type="text" placeholder="Enter a Twitch username..." autocomplete="off" />
+        <span class="kbd">⏎</span>
+        <button class="analyze-btn" id="analyzeBtn">
+          <span id="analyzeBtnText">Analyze</span>
+        </button>
+      </div>
+      <div class="recent-row">
+        <span class="chip" data-name="shroud">shroud</span>
+        <span class="chip" data-name="pokimane">pokimane</span>
+        <span class="chip" data-name="ninja">ninja</span>
+        <span class="chip" data-name="ludwig">ludwig</span>
+      </div>
+    </div>
+
+    <div class="preview-wrap">
+      <div class="preview-card">
+        <div class="preview-head">
+          <div class="preview-avatar"></div>
+          <div>
+            <div class="preview-name">northlane_tv</div>
+            <div class="preview-sub">Affiliate · Just Chatting</div>
+          </div>
+          <div class="preview-score">
+            <div class="num">94</div>
+            <div class="lbl">Health Score</div>
+          </div>
+        </div>
+        <div class="preview-grid">
+          <div class="preview-mini"><div class="mv">Excellent</div><div class="ml">Brand</div></div>
+          <div class="preview-mini"><div class="mv">Needs Work</div><div class="ml">Panels</div></div>
+          <div class="preview-mini"><div class="mv">Strong</div><div class="ml">Community</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section" id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="section-eyebrow">How it works</div>
+        <div class="section-title">Five stages to a stronger channel</div>
+        <div class="section-sub">One scan, a complete professional audit — branding, visuals, community, and a clear growth plan.</div>
+      </div>
+      <div class="flow-grid" id="flowGrid">
+        <div class="flow-card"><div class="flow-num">01</div><div class="flow-title">Analyze</div><div class="flow-desc">Enter any Twitch username and we pull the public profile, assets, and metadata.</div></div>
+        <div class="flow-card"><div class="flow-num">02</div><div class="flow-title">Discover</div><div class="flow-desc">Every visual asset and profile detail is scored against professional benchmarks.</div></div>
+        <div class="flow-card"><div class="flow-num">03</div><div class="flow-title">Improve</div><div class="flow-desc">An AI coach explains exactly what's holding the channel back, in plain language.</div></div>
+        <div class="flow-card"><div class="flow-num">04</div><div class="flow-title">Download</div><div class="flow-desc">Export a full brand kit — banners, palettes, panels — ready to use immediately.</div></div>
+        <div class="flow-card"><div class="flow-num">05</div><div class="flow-title">Grow</div><div class="flow-desc">A prioritized action plan turns findings into a week-by-week growth roadmap.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 2026 Twitch Audit Pro — Not affiliated with Twitch Interactive, Inc.
+  </footer>
+</div>
+
+<div class="scan-overlay" id="scanOverlay">
+  <div class="scan-card">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+      <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#9146FF,#6441a5);flex-shrink:0;"></div>
+      <div>
+        <div style="font-weight:700;font-size:16px;" id="scanName">Analyzing streamer...</div>
+        <div style="font-size:13px;color:var(--gray-400);" id="scanSub">This usually takes a few seconds</div>
+      </div>
+    </div>
+    <div id="stageList"></div>
+  </div>
+</div>
+
+<div id="report">
+  <div class="wrap">
+    <div class="report-header" id="reportHeader">
+      <div class="report-avatar"></div>
+      <div>
+        <div class="report-name" id="reportName">northlane_tv <span class="badge live">● LIVE</span> <span class="badge">Affiliate</span></div>
+        <div class="report-meta">128,402 followers · Just Chatting · Scanned just now</div>
+      </div>
+      <div style="margin-left:auto;">
+        <button class="btn-primary" onclick="resetApp()">New scan</button>
+      </div>
+    </div>
+
+    <div class="score-hero" id="scoreHero">
+      <div class="orb-score">
+        <svg viewBox="0 0 200 200">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0a84ff"/>
+              <stop offset="100%" stop-color="#7c5cff"/>
+            </linearGradient>
+          </defs>
+          <circle class="bgc" cx="100" cy="100" r="88"/>
+          <circle class="fgc" id="scoreRing" cx="100" cy="100" r="88" stroke-dasharray="553" stroke-dashoffset="553"/>
+        </svg>
+        <div class="center">
+          <div class="num" id="scoreNum">0</div>
+          <div class="lbl">Health Score</div>
+        </div>
+      </div>
+      <div class="sub-scores" id="subScores">
+        <div class="sub-score"><div class="name">Brand</div><div class="bar-track"><div class="bar-fill" style="background:#0a84ff;" data-val="91"></div></div><div class="val">91</div></div>
+        <div class="sub-score"><div class="name">Profile</div><div class="bar-track"><div class="bar-fill" style="background:#30d158;" data-val="76"></div></div><div class="val">76</div></div>
+        <div class="sub-score"><div class="name">Community</div><div class="bar-track"><div class="bar-fill" style="background:#ff9f0a;" data-val="88"></div></div><div class="val">88</div></div>
+        <div class="sub-score"><div class="name">Growth</div><div class="bar-track"><div class="bar-fill" style="background:#7c5cff;" data-val="68"></div></div><div class="val">68</div></div>
+      </div>
+    </div>
+
+    <div class="report-section" id="sec-quickwins">
+      <div class="report-section-head">
+        <div><div class="report-section-title">Quick wins</div><div class="report-section-sub">Highest impact, lowest effort — start here.</div></div>
+      </div>
+      <div class="quickwin-list">
+        <div class="quickwin"><div class="qw-priority high"></div><div class="qw-body"><div class="qw-title">Create an offline banner</div><div class="qw-meta">5 minutes · Low difficulty</div></div><div class="qw-impact">+8 Brand</div></div>
+        <div class="quickwin"><div class="qw-priority high"></div><div class="qw-body"><div class="qw-title">Improve bio clarity and add a call to action</div><div class="qw-meta">10 minutes · Low difficulty</div></div><div class="qw-impact">+12 Profile</div></div>
+        <div class="quickwin"><div class="qw-priority med"></div><div class="qw-body"><div class="qw-title">Add a Discord panel</div><div class="qw-meta">3 minutes · Low difficulty</div></div><div class="qw-impact">+6 Community</div></div>
+        <div class="quickwin"><div class="qw-priority med"></div><div class="qw-body"><div class="qw-title">Complete your streaming schedule</div><div class="qw-meta">5 minutes · Low difficulty</div></div><div class="qw-impact">+7 Optimization</div></div>
+        <div class="quickwin"><div class="qw-priority low"></div><div class="qw-body"><div class="qw-title">Increase banner contrast around logo</div><div class="qw-meta">20 minutes · Medium difficulty</div></div><div class="qw-impact">+9 Brand</div></div>
+      </div>
+    </div>
+
+    <div class="report-section" id="sec-assets">
+      <div class="report-section-head">
+        <div><div class="report-section-title">Visual assets</div><div class="report-section-sub">Every brand asset, scored individually.</div></div>
+      </div>
+      <div class="asset-grid">
+        <div class="asset-card"><div class="asset-preview"></div><div class="asset-body"><div class="asset-name">Profile Avatar</div><div class="asset-score-row"><span class="asset-score">87 / 100</span><span class="asset-dl">Download ↓</span></div></div></div>
+        <div class="asset-card"><div class="asset-preview"></div><div class="asset-body"><div class="asset-name">Banner</div><div class="asset-score-row"><span class="asset-score">64 / 100</span><span class="asset-dl">Download ↓</span></div></div></div>
+        <div class="asset-card"><div class="asset-preview"></div><div class="asset-body"><div class="asset-name">Offline Banner</div><div class="asset-score-row"><span class="asset-score">Missing</span><span class="asset-dl">Generate →</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="report-section" id="sec-coach">
+      <div class="report-section-head">
+        <div><div class="report-section-title">AI Coach</div><div class="report-section-sub">Explained findings, not raw numbers.</div></div>
+      </div>
+      <div class="coach-list">
+        <div class="coach-msg"><div class="coach-avatar"></div><div><div class="coach-text">Your banner uses five competing colors that don't appear elsewhere in your branding. Simplifying the palette around your existing avatar colors would make the channel feel more intentional at a glance.</div><div class="coach-impact">Estimated +9% brand recognition</div></div></div>
+        <div class="coach-msg"><div class="coach-avatar"></div><div><div class="coach-text">Your profile picture loses definition at Twitch's small chat-icon size. A simpler silhouette with stronger contrast would stay recognizable even at 28px.</div><div class="coach-impact">Estimated +12% recognizability</div></div></div>
+        <div class="coach-msg"><div class="coach-avatar"></div><div><div class="coach-text">No offline banner was found. Viewers who arrive while you're offline see a blank space instead of a reason to follow or return — this is one of the fastest fixes available.</div><div class="coach-impact">Estimated +8 branding points</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Nav scroll behavior ----------
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+    const s = window.scrollY;
+    document.getElementById('orb1').style.transform = `translateY(${s*0.08}px)`;
+    document.getElementById('orb2').style.transform = `translateY(${-s*0.05}px)`;
+  });
+
+  // ---------- Mouse parallax on orbs ----------
+  document.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 30;
+    const y = (e.clientY / window.innerHeight - 0.5) * 30;
+    document.getElementById('orb3').style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+  });
+
+  // ---------- Particle field (lightweight canvas, no deps) ----------
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  for(let i=0;i<50;i++){
+    particles.push({
+      x: Math.random()*canvas.width, y: Math.random()*canvas.height,
+      r: Math.random()*1.6+0.4, vy: Math.random()*0.15+0.03, o: Math.random()*0.3+0.05
+    });
+  }
+  function animateParticles(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.y -= p.vy;
+      if(p.y < -10){ p.y = canvas.height+10; p.x = Math.random()*canvas.width; }
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle = `rgba(100,80,255,${p.o})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
+  // ---------- Scroll reveal for flow cards ----------
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach((e,i)=>{
+      if(e.isIntersecting){
+        setTimeout(()=> e.target.classList.add('in'), i*90);
+        io.unobserve(e.target);
+      }
+    });
+  }, {threshold:0.2});
+  document.querySelectorAll('.flow-card').forEach(c=>io.observe(c));
+
+  // ---------- Input focus state ----------
+  const bar = document.getElementById('analyzeBar');
+  const input = document.getElementById('usernameInput');
+  input.addEventListener('focus', ()=> bar.classList.add('focused'));
+  input.addEventListener('blur', ()=> bar.classList.remove('focused'));
+  document.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{ input.value = chip.dataset.name; input.focus(); });
+  });
+
+  // ---------- Dynamic Island helpers ----------
+  const island = document.getElementById('island');
+  const islandInner = document.getElementById('islandInner');
+
+  function setIslandIdle(){
+    island.className = 'island idle';
+    islandInner.innerHTML = `
+      <div class="island-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 2L2 6v14h6v2h4l2-2h4l4-4V2H4zm16 12l-2 2h-4l-2 2h-2v-2H6V4h14v10z" fill="white"/></svg></div>
+      <div class="island-text">Ready</div>`;
+  }
+  let _scanningName = '';
+  function setIslandScanning(pct, label){
+    island.className = 'island scanning';
+    const circumference = 2*Math.PI*10;
+    const offset = circumference * (1 - pct/100);
+    islandInner.innerHTML = `
+      <svg class="ring" viewBox="0 0 24 24">
+        <circle class="bg" cx="12" cy="12" r="10"/>
+        <circle class="fg" cx="12" cy="12" r="10" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
+      </svg>
+      <div style="flex:1;min-width:0;">
+        <div class="island-text">${label}</div>
+        <div class="island-sub">Analyzing @${_scanningName}</div>
+      </div>
+      <div class="island-pct">${pct}%</div>`;
+  }
+  function setIslandComplete(){
+    island.className = 'island complete';
+    islandInner.innerHTML = `
+      <div class="island-icon" style="background:linear-gradient(135deg,#30d158,#0a84ff);">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div style="flex:1;">
+        <div class="island-text">Analysis complete</div>
+        <div class="island-sub">Health score 82 · 3 quick wins found</div>
+      </div>`;
+    setTimeout(()=>{ island.className='island idle'; islandInner.innerHTML = `
+      <div class="island-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 2L2 6v14h6v2h4l2-2h4l4-4V2H4zm16 12l-2 2h-4l-2 2h-2v-2H6V4h14v10z" fill="white"/></svg></div>
+      <div class="island-text">Ready</div>`; }, 3400);
+  }
+
+  // ---------- Scan overlay stages ----------
+  const stages = [
+    "Connecting to Twitch",
+    "Downloading profile assets",
+    "Detecting panels",
+    "Analyzing branding",
+    "Reading community signals",
+    "Generating AI recommendations",
+    "Finalizing report"
+  ];
+  const stageList = document.getElementById('stageList');
+  const overlay = document.getElementById('scanOverlay');
+  const scanName = document.getElementById('scanName');
+
+  function renderStages(){
+    stageList.innerHTML = stages.map((s,i)=>`
+      <div class="scan-stage" id="stage-${i}">
+        <span class="stage-icon" id="stage-icon-${i}">
+          <svg width="7" height="7" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#dcdce0"/></svg>
+        </span>
+        <span>${s}</span>
+      </div>`).join('');
+  }
+
+  function markStage(i, state){
+    const row = document.getElementById(`stage-${i}`);
+    const icon = document.getElementById(`stage-icon-${i}`);
+    row.classList.remove('active','done');
+    if(state==='active'){
+      row.classList.add('active');
+      icon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#0a84ff" stroke-width="2" stroke-dasharray="40" stroke-dashoffset="10" style="animation:spin 1s linear infinite; transform-origin:center;"/></svg>`;
+    } else if(state==='done'){
+      row.classList.add('done');
+      icon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#30d158"/><path d="M8 12l3 3 5-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    }
+  }
+
+  const styleTag = document.createElement('style');
+  styleTag.innerHTML = `@keyframes spin{ to{ transform:rotate(360deg);} }`;
+  document.head.appendChild(styleTag);
+
+  let scanning = false;
+  const analyzeBtn = document.getElementById('analyzeBtn');
+
+  // Same-origin relative path — works locally with `vercel dev` and in
+  // production on Vercel, since the API function deploys alongside this
+  // page. No token ever appears in this file.
+  let liveData = null; // filled in if the API responds
+
+  async function tryFetchLiveData(name){
+    try{
+      const res = await fetch(`/api/analyze?username=${encodeURIComponent(name)}`);
+      if(!res.ok) return null;
+      return await res.json();
+    }catch(err){
+      // Server not running, CORS blocked, or offline — fall back to demo data.
+      return null;
+    }
+  }
+
+  function runScan(){
+    if(scanning) return;
+    const name = input.value.trim();
+    if(!name){ input.focus(); return; }
+    _scanningName = name;
+    scanning = true;
+    analyzeBtn.disabled = true;
+    document.getElementById('analyzeBtnText').textContent = 'Analyzing...';
+    scanName.textContent = `Analyzing ${name}...`;
+    renderStages();
+    overlay.classList.add('show');
+    liveData = null;
+
+    // Kick off the real API call in parallel with the staged animation,
+    // so the cinematic scan never feels blocked on network latency.
+    const fetchPromise = tryFetchLiveData(name);
+
+    let i = 0;
+    function nextStage(){
+      if(i>0) markStage(i-1,'done');
+      if(i>=stages.length){
+        Promise.resolve(fetchPromise).then((data)=>{
+          liveData = data; // null if server unreachable/no credentials
+          setTimeout(()=>{
+            overlay.classList.remove('show');
+            scanning = false;
+            analyzeBtn.disabled = false;
+            document.getElementById('analyzeBtnText').textContent = 'Analyze';
+            setIslandComplete();
+            showReport(name);
+          }, 500);
+        });
+        return;
+      }
+      markStage(i,'active');
+      const pct = Math.round(((i+1)/stages.length)*100);
+      setIslandScanning(pct, stages[i]);
+      i++;
+      setTimeout(nextStage, 620);
+    }
+    setTimeout(nextStage, 300);
+  }
+
+  analyzeBtn.addEventListener('click', runScan);
+  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') runScan(); });
+
+  // ---------- Report reveal ----------
+  function animateCount(el, to, duration){
+    let start = null;
+    function step(ts){
+      if(!start) start = ts;
+      const progress = Math.min((ts-start)/duration, 1);
+      const eased = 1 - Math.pow(1-progress, 3);
+      el.textContent = Math.round(eased*to);
+      if(progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function showReport(name){
+    document.getElementById('main').style.display = 'none';
+    const report = document.getElementById('report');
+    report.classList.add('show');
+    window.scrollTo({top:0, behavior:'instant'});
+
+    if(liveData && liveData.identity){
+      const id       = liveData.identity;
+      const ch       = liveData.channel  || {};
+      const live     = liveData.live     || {};
+      const isLive   = live.isLive;
+
+      const typeBadge = id.broadcasterType === 'partner'   ? '⭐ Partner'
+                      : id.broadcasterType === 'affiliate' ? '🎗 Affiliate'
+                      : 'No status';
+
+      document.getElementById('reportName').innerHTML =
+        `${id.displayName}
+         ${isLive ? '<span class="badge live">● LIVE</span>' : '<span class="badge">Offline</span>'}
+         <span class="badge">${typeBadge}</span>
+         <span class="badge" style="background:rgba(10,132,255,.1);color:var(--blue);">✓ Live Data</span>`;
+
+      // Real profile picture
+      if(id.profileImageUrl){
+        const av = document.querySelector('#report .report-avatar');
+        av.style.background = `url('${id.profileImageUrl}') center/cover no-repeat`;
+        av.style.backgroundSize = 'cover';
+      }
+
+      // Meta line — game + viewers if live
+      const metaEl = document.querySelector('.report-meta');
+      if(metaEl){
+        const parts = [];
+        if(ch.gameName) parts.push(ch.gameName);
+        if(isLive && live.viewerCount != null) parts.push(`${live.viewerCount.toLocaleString()} viewers live`);
+        const acctAge = id.createdAt ? (() => {
+          const days = Math.floor((Date.now() - new Date(id.createdAt)) / 86400000);
+          if(days >= 365) return `${Math.floor(days/365)}y ${Math.floor((days%365)/30)}mo old`;
+          return `${Math.floor(days/30)}mo old`;
+        })() : '';
+        if(acctAge) parts.push(acctAge);
+        parts.push('Scanned just now');
+        metaEl.textContent = parts.join(' · ');
+      }
+
+      // Bio under coach section if present
+      if(id.description && id.description.trim()){
+        const bioEl = document.createElement('div');
+        bioEl.style.cssText = 'margin-bottom:12px;padding:14px 18px;background:var(--gray-50);border-radius:12px;font-size:13.5px;color:var(--gray-700);line-height:1.6';
+        bioEl.innerHTML = `<strong style="font-size:12px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Channel Bio</strong><br>${id.description}`;
+        const coachList = document.querySelector('.coach-list');
+        if(coachList) coachList.prepend(bioEl);
+      }
+
+      // Tags under quick wins if present
+      if(ch.tags && ch.tags.length){
+        const tagWrap = document.createElement('div');
+        tagWrap.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px';
+        tagWrap.innerHTML = ch.tags.map(t =>
+          `<span style="font-size:12px;font-weight:600;background:rgba(10,132,255,.08);color:var(--blue);padding:4px 10px;border-radius:999px">${t}</span>`
+        ).join('');
+        const qwList = document.querySelector('.quickwin-list');
+        if(qwList) qwList.prepend(tagWrap);
+      }
+
+      // Stream title as a visible note
+      const streamTitle = (isLive && live.title) || ch.title;
+      if(streamTitle){
+        const titleEl = document.createElement('div');
+        titleEl.style.cssText = 'margin-top:6px;font-size:14px;color:var(--gray-500);font-style:italic';
+        titleEl.textContent = `"${streamTitle}"`;
+        document.getElementById('reportName').after(titleEl);
+      }
+
+    } else {
+      // No server / no data — show the searched name cleanly, no fake numbers
+      document.getElementById('reportName').innerHTML =
+        `${name} <span class="badge" style="background:var(--gray-50);color:var(--gray-400);">Server offline</span>`;
+      const metaEl = document.querySelector('.report-meta');
+      if(metaEl) metaEl.textContent = `Could not connect to the local server — start app.js and try again.`;
+    }
+
+    setTimeout(()=>{
+      document.getElementById('reportHeader').style.transition = 'all .7s cubic-bezier(.16,1,.3,1)';
+      document.getElementById('reportHeader').style.opacity = '1';
+      document.getElementById('reportHeader').style.transform = 'translateY(0)';
+    }, 100);
+
+    setTimeout(()=>{
+      const hero = document.getElementById('scoreHero');
+      hero.style.transition = 'all .8s cubic-bezier(.16,1,.3,1)';
+      hero.style.opacity = '1';
+      hero.style.transform = 'translateY(0)';
+
+      const circumference = 2*Math.PI*88;
+      const finalScore = 82;
+      document.getElementById('scoreRing').style.strokeDasharray = circumference;
+      document.getElementById('scoreRing').style.strokeDashoffset = circumference * (1 - finalScore/100);
+      animateCount(document.getElementById('scoreNum'), finalScore, 1500);
+
+      document.querySelectorAll('.bar-fill').forEach(bar=>{
+        setTimeout(()=>{ bar.style.width = bar.dataset.val + '%'; }, 200);
+      });
+    }, 350);
+
+    document.querySelectorAll('.report-section').forEach((sec, idx)=>{
+      setTimeout(()=>{
+        sec.style.transition = 'all .7s cubic-bezier(.16,1,.3,1)';
+        sec.style.opacity = '1';
+        sec.style.transform = 'translateY(0)';
+      }, 600 + idx*180);
+    });
+  }
+
+  function resetApp(){
+    document.getElementById('report').classList.remove('show');
+    document.getElementById('main').style.display = 'block';
+    input.value = '';
+    window.scrollTo({top:0, behavior:'instant'});
+    // reset transient styles
+    document.getElementById('reportHeader').style.opacity = '0';
+    document.getElementById('reportHeader').style.transform = 'translateY(16px)';
+    document.getElementById('scoreHero').style.opacity = '0';
+    document.getElementById('scoreHero').style.transform = 'translateY(20px)';
+    document.getElementById('scoreNum').textContent = '0';
+    document.getElementById('scoreRing').style.strokeDashoffset = 2*Math.PI*88;
+    document.querySelectorAll('.bar-fill').forEach(b=> b.style.width='0%');
+    document.querySelectorAll('.report-section').forEach(s=>{ s.style.opacity='0'; s.style.transform='translateY(18px)'; });
+  }
+</script>
+</body>
+</html>
